@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Endourologia HSPE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f5}
+.topnav{background:#185FA5;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.topnav h1{font-size:16px;font-weight:500;flex:1}
+.topnav button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.topnav button:hover{background:rgba(255,255,255,0.25)}
+.container{max-width:800px;margin:0 auto;padding:20px 16px}
+.screen{display:none}
+.screen.active{display:block}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat{background:#fff;border-radius:10px;padding:14px;text-align:center;border:1px solid #e0e0e0}
+.stat-n{font-size:24px;font-weight:600;color:#185FA5}
+.stat-l{font-size:12px;color:#666;margin-top:2px}
+.search-bar{display:flex;gap:8px;margin-bottom:16px}
+.search-bar input,.search-bar select{padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff}
+.search-bar input{flex:1}
+.patient-row{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:12px 16px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background .15s}
+.patient-row:hover{background:#f0f6ff}
+.patient-info{flex:1}
+.patient-name{font-weight:500;font-size:14px}
+.patient-sub{font-size:12px;color:#888;margin-top:2px}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-green{background:#dcfce7;color:#166534}
+.empty{text-align:center;padding:48px 16px;color:#aaa}
+.empty i{font-size:40px;display:block;margin-bottom:8px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:16px 20px;margin-bottom:14px}
+.card h3{font-size:13px;font-weight:600;color:#555;margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 12px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select,.field textarea{padding:8px 10px;border:1px solid #ddd;border-radius:7px;font-size:13px;background:#fafafa;color:#1a1a1a;font-family:inherit}
+.field select{cursor:pointer}
+.field textarea{resize:vertical;min-height:60px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:6px}
+.tab{padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;border:none;background:transparent;color:#666;font-weight:500}
+.tab.active{background:#185FA5;color:#fff}
+.phase{display:none}
+.phase.active{display:block}
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:500;border:1px solid #ddd;background:#fff;color:#333}
+.btn:hover{background:#f5f5f5}
+.btn-primary{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn-primary:hover{background:#0c447c}
+.btn-danger{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+.btn-danger:hover{background:#fecaca}
+.btn-success{background:#dcfce7;color:#166534;border-color:#86efac}
+.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.form-title{flex:1;font-size:17px;font-weight:600;color:#185FA5}
+.divider{border:none;border-top:1px solid #eee;margin:14px 0}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.loading{text-align:center;padding:40px;color:#888;font-size:13px}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid #ddd;border-top-color:#185FA5;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.section-badge{display:inline-block;background:#E6F1FB;color:#0C447C;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
+@media(max-width:500px){.stats{grid-template-columns:repeat(3,1fr)}.form-actions{flex-direction:column;align-items:stretch}.form-actions .form-title{font-size:15px}}
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <h1><i class="ti ti-database"></i> Endourologia HSPE</h1>
+  <button onclick="exportExcel()"><i class="ti ti-download"></i> Exportar</button>
+  <button onclick="goNew()" style="background:#fff;color:#185FA5;border-color:#fff"><i class="ti ti-plus"></i> Novo</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- LISTA -->
+<div class="screen active" id="scr-list">
+  <div class="container">
+    <div class="stats" id="stats-bar">
+      <div class="stat"><div class="stat-n" id="s-total">—</div><div class="stat-l">Total</div></div>
+      <div class="stat"><div class="stat-n" id="s-lit">—</div><div class="stat-l">Litíase</div></div>
+      <div class="stat"><div class="stat-n" id="s-hbp">—</div><div class="stat-l">HBP</div></div>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="search" placeholder="Buscar nome ou prontuário..." oninput="renderList()">
+      <select id="filter-path" onchange="renderList()">
+        <option value="">Todas</option>
+        <option value="litiase">Litíase</option>
+        <option value="hbp">HBP</option>
+      </select>
+    </div>
+    <div id="patient-list"><div class="loading"><span class="spinner"></span>Carregando...</div></div>
+  </div>
+</div>
+
+<!-- FORMULÁRIO -->
+<div class="screen" id="scr-form">
+  <div class="container">
+    <div class="form-actions">
+      <button class="btn" onclick="goList()"><i class="ti ti-arrow-left"></i> Voltar</button>
+      <span class="form-title" id="form-title">Novo paciente</span>
+      <button class="btn btn-danger" id="btn-delete" onclick="deletePatient()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn btn-primary" onclick="savePatient()"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+
+    <div class="card">
+      <h3>Identificação</h3>
+      <div class="grid2">
+        <div class="field"><label>Nome completo *</label><input type="text" id="f-nome"></div>
+        <div class="field"><label>Prontuário *</label><input type="text" id="f-pront"></div>
+        <div class="field"><label>Data de nascimento</label><input type="date" id="f-nasc"></div>
+        <div class="field"><label>Sexo</label><select id="f-sexo"><option value="">—</option><option>Masculino</option><option>Feminino</option></select></div>
+        <div class="field"><label>IMC (kg/m²)</label><input type="number" id="f-imc" step="0.1"></div>
+        <div class="field"><label>Patologia *</label>
+          <select id="f-path" onchange="togglePath()">
+            <option value="">Selecione...</option>
+            <option value="litiase">Litíase urinária</option>
+            <option value="hbp">Hiperplasia prostática</option>
+          </select>
+        </div>
+        <div class="field"><label>Data da consulta</label><input type="date" id="f-consulta"></div>
+        <div class="field"><label>Operador / Preceptor</label><input type="text" id="f-operador" placeholder="Quem está preenchendo"></div>
+      </div>
+    </div>
+
+    <div class="tabs" id="phase-tabs">
+      <button class="tab active" onclick="switchPhase('pre')">Pré-op</button>
+      <button class="tab" onclick="switchPhase('intra')">Intraop</button>
+      <button class="tab" onclick="switchPhase('posimm')">PO imediato</button>
+      <button class="tab" onclick="switchPhase('pos30')">PO 30 dias</button>
+      <button class="tab" onclick="switchPhase('pos90')">PO 90 dias</button>
+    </div>
+
+    <!-- LITÍASE -->
+    <div id="path-litiase" style="display:none">
+
+      <div class="phase active" id="litiase-pre">
+        <div class="card">
+          <div class="section-badge">Duplo J atual</div>
+          <div class="grid2">
+            <div class="field"><label>Em uso de duplo J</label><select id="l-djuso"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Tempo com duplo J</label><input type="text" id="l-djtempo" placeholder="ex: 3 semanas"></div>
+            <div class="field"><label>Motivo da inserção prévia</label><select id="l-djmotivo"><option value="">—</option><option>Cólica</option><option>Sepse</option><option>Preparo cirúrgico</option><option>Outro</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Antecedentes</div>
+          <div class="grid3">
+            <div class="field"><label>Litíase prévia</label><select id="l-litprev"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Cirurgia renal anterior</label><select id="l-cirrnal"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>ITU de repetição</label><select id="l-itu"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Hipertensão</label><select id="l-has"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Diabetes mellitus</label><select id="l-dm"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Anticoagulante</label><select id="l-anticoa"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Doença renal crônica</label><select id="l-drc"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Rim único</label><select id="l-rimun"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Laboratório</div>
+          <div class="grid2">
+            <div class="field"><label>Data dos exames</label><input type="date" id="l-labdata"></div>
+            <div class="field"><label>Creatinina (mg/dL)</label><input type="number" id="l-creat" step="0.01"></div>
+            <div class="field"><label>TFG (mL/min)</label><input type="number" id="l-tfg"></div>
+            <div class="field"><label>Urina I (EAS)</label><select id="l-eas"><option value="">—</option><option>Normal</option><option>Hematúria</option><option>Leucocitúria</option><option>Nitrito+</option><option>Alterado</option></select></div>
+            <div class="field"><label>Urocultura</label><select id="l-urocu"><option value="">—</option><option>Negativa</option><option>Positiva</option><option>Pendente</option></select></div>
+            <div class="field"><label>Cálcio sérico (mg/dL)</label><input type="number" id="l-calcio" step="0.1"></div>
+            <div class="field"><label>Ácido úrico sérico (mg/dL)</label><input type="number" id="l-aurico" step="0.1"></div>
+            <div class="field"><label>Urina 24h pré-op</label><select id="l-u24pre"><option value="">—</option><option>Sim</option><option>Não</option><option>Já disponível</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Imagem e cálculo</div>
+          <div class="grid2">
+            <div class="field"><label>Tipo de imagem</label><select id="l-img"><option value="">—</option><option>TC sem contraste</option><option>Ultrassom</option><option>RX simples</option></select></div>
+            <div class="field"><label>Localização</label><select id="l-loc"><option value="">—</option><option>Cálice superior</option><option>Cálice médio</option><option>Cálice inferior</option><option>Pelve renal</option><option>Junção UPJ</option><option>Ureter proximal</option><option>Ureter médio</option><option>Ureter distal</option><option>Junção UVJ</option></select></div>
+            <div class="field"><label>Tamanho (mm)</label><input type="number" id="l-tam" step="0.1"></div>
+            <div class="field"><label>Densidade (HU)</label><input type="number" id="l-hu"></div>
+            <div class="field"><label>Espessura pele-cálculo (mm)</label><input type="number" id="l-esppc" step="0.1"></div>
+            <div class="field"><label>Hidronefrose</label><select id="l-hidro"><option value="">—</option><option>Ausente</option><option>Grau I</option><option>Grau II</option><option>Grau III</option><option>Grau IV</option></select></div>
+            <div class="field"><label>Guy's Stone Score</label><select id="l-guys"><option value="">—</option><option>Grau I</option><option>Grau II</option><option>Grau III</option><option>Grau IV</option></select></div>
+            <div class="field"><label>Composição prévia</label><select id="l-comp"><option value="">—</option><option>Oxalato de cálcio</option><option>Ácido úrico</option><option>Estruvita</option><option>Cistina</option><option>Desconhecida</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Proposta terapêutica</div>
+          <div class="grid2">
+            <div class="field"><label>Técnica proposta</label><select id="l-tec"><option value="">—</option><option>NLPC</option><option>URS flexível</option><option>Ureterorenoscopia rígida</option><option>LEOC</option><option>Cirurgia aberta</option><option>Laparoscopia</option></select></div>
+            <div class="field"><label>Nefrostomia prévia</label><select id="l-nefprev"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Antibioticoprofilaxia</label><input type="text" id="l-atb"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase" id="litiase-intra">
+        <div class="card">
+          <div class="section-badge">Dados cirúrgicos</div>
+          <div class="grid2">
+            <div class="field"><label>Data da cirurgia</label><input type="date" id="l-datacir"></div>
+            <div class="field"><label>Cirurgião responsável</label><input type="text" id="l-cirurg"></div>
+            <div class="field"><label>Residente</label><select id="l-resid"><option value="">—</option><option>Nenhum</option><option>R1</option><option>R2</option><option>R3</option></select></div>
+            <div class="field"><label>Técnica realizada</label><select id="l-tecreal"><option value="">—</option><option>NLPC</option><option>URS flexível</option><option>Ureterorenoscopia rígida</option><option>LEOC</option><option>Cirurgia aberta</option><option>Laparoscopia</option></select></div>
+            <div class="field"><label>Tempo cirúrgico (min)</label><input type="number" id="l-tempo"></div>
+            <div class="field"><label>Anestesia</label><select id="l-anest"><option value="">—</option><option>Geral</option><option>Raquianestesia</option><option>Sedação</option></select></div>
+            <div class="field"><label>Posição</label><select id="l-posic"><option value="">—</option><option>Litotomia</option><option>Prone</option><option>Flank</option></select></div>
+            <div class="field"><label>Tipo de energia</label><select id="l-energ"><option value="">—</option><option>Holmium laser</option><option>Thulium laser</option><option>Pneumático</option><option>Ultrassônico</option><option>Combinado</option></select></div>
+            <div class="field"><label>Estratégia</label><select id="l-estrat"><option value="">—</option><option>Fragmentação</option><option>Pulverização</option><option>Fragmentação + extração</option></select></div>
+            <div class="field"><label>Bainha de acesso ureteral</label><select id="l-bainha"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Extração de fragmentos</label><select id="l-extrac"><option value="">—</option><option>Basket</option><option>Pinça</option><option>Aspiração</option><option>Não realizada</option></select></div>
+            <div class="field"><label>Stone free intraop</label><select id="l-stonefree"><option value="">—</option><option>Sim</option><option>Não</option><option>Parcial</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Duplo J ao final</div>
+          <div class="grid2">
+            <div class="field"><label>Cateter JJ inserido</label><select id="l-jjins"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Tamanho (Fr/cm)</label><input type="text" id="l-jjtam" placeholder="ex: 6Fr / 26cm"></div>
+            <div class="field"><label>Tipo de inserção</label><select id="l-jjtipo"><option value="">—</option><option>Com fio externo</option><option>Sem fio externo</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Hemostasia e intercorrências</div>
+          <div class="grid2">
+            <div class="field"><label>Sangramento estimado (mL)</label><input type="number" id="l-sang"></div>
+            <div class="field"><label>Transfusão</label><select id="l-transf"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Nefrostomia inserida</label><select id="l-nefins"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Intercorrência</label><select id="l-intercorr"><option value="">—</option><option>Nenhuma</option><option>Sangramento significativo</option><option>Perfuração ureteral</option><option>Avulsão ureteral</option><option>Lesão pleural</option><option>Conversão de técnica</option><option>Falha de acesso</option></select></div>
+            <div class="field"><label>Clavien-Dindo</label><select id="l-clavien-intra"><option value="">—</option><option>0</option><option>I</option><option>II</option><option>IIIa</option><option>IIIb</option><option>IV</option><option>V</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase" id="litiase-posimm">
+        <div class="card">
+          <div class="section-badge">Parâmetros clínicos 24-48h</div>
+          <div class="grid2">
+            <div class="field"><label>Dor EVA (0-10)</label><input type="number" id="l-eva" min="0" max="10"></div>
+            <div class="field"><label>Febre (&gt;38°C)</label><select id="l-febre"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Hematúria macroscópica</label><select id="l-hemat"><option value="">—</option><option>Ausente</option><option>Discreta</option><option>Intensa</option></select></div>
+            <div class="field"><label>Creatinina pós-op</label><input type="number" id="l-creatpos" step="0.01"></div>
+            <div class="field"><label>Clavien-Dindo PO</label><select id="l-clavpos"><option value="">—</option><option>0</option><option>I</option><option>II</option><option>IIIa</option><option>IIIb</option><option>IV</option><option>V</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Alta e retorno</div>
+          <div class="grid2">
+            <div class="field"><label>Data da alta</label><input type="date" id="l-alta"></div>
+            <div class="field"><label>Tempo internação (dias)</label><input type="number" id="l-intern"></div>
+            <div class="field"><label>Cateter na alta</label><select id="l-catalt"><option value="">—</option><option>Duplo J</option><option>Nefrostomia</option><option>Nenhum</option></select></div>
+            <div class="field"><label>Antibiótico de saída</label><input type="text" id="l-atbsaida"></div>
+            <div class="field"><label>Data prevista de retorno</label><input type="date" id="l-retorno"></div>
+            <div class="field"><label>Data prevista retirada JJ</label><input type="date" id="l-djret"></div>
+            <div class="field"><label>Novo procedimento planejado</label><select id="l-novoproc"><option value="">—</option><option>Sim</option><option>Não</option><option>A definir</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase" id="litiase-pos30">
+        <div class="card">
+          <div class="section-badge">Retorno 30 dias</div>
+          <div class="grid2">
+            <div class="field"><label>Data do retorno</label><input type="date" id="l-ret30data"></div>
+            <div class="field"><label>Dor lombar / cólica</label><select id="l-dor30"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>ITU pós-operatória</label><select id="l-itu30"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Queixas do paciente</label><input type="text" id="l-queixas30"></div>
+            <div class="field"><label>Imagem realizada</label><select id="l-img30"><option value="">—</option><option>RX simples</option><option>Ultrassom</option><option>TC sem contraste</option></select></div>
+            <div class="field"><label>Stone free (&lt;2mm)</label><select id="l-sf30"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Fragmentos residuais (mm)</label><input type="number" id="l-fragres" step="0.1"></div>
+            <div class="field"><label>Hidronefrose residual</label><select id="l-hidro30"><option value="">—</option><option>Ausente</option><option>Grau I</option><option>Grau II</option><option>Grau III</option><option>Grau IV</option></select></div>
+            <div class="field"><label>Retirada JJ</label><select id="l-retjj30"><option value="">—</option><option>Realizada</option><option>Pendente</option><option>N/A</option></select></div>
+            <div class="field"><label>Análise bioquímica cálculo</label><select id="l-bioquim"><option value="">—</option><option>Enviada</option><option>Pendente</option><option>Resultado disponível</option></select></div>
+            <div class="field"><label>Urina 24h solicitada</label><select id="l-u24sol"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Orientação urina 24h</label><select id="l-u24ori"><option value="">—</option><option>Realizada</option><option>Pendente</option></select></div>
+            <div class="field"><label>Nova intervenção planejada</label><select id="l-novint30"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase" id="litiase-pos90">
+        <div class="card">
+          <div class="section-badge">Retorno 90 dias</div>
+          <div class="grid2">
+            <div class="field"><label>Data do retorno</label><input type="date" id="l-ret90data"></div>
+            <div class="field"><label>Stone free confirmado</label><select id="l-sf90"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Recidiva / novo cálculo</label><select id="l-recid"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Creatinina 90 dias</label><input type="number" id="l-creat90" step="0.01"></div>
+            <div class="field"><label>Complicação tardia</label><select id="l-comptard"><option value="">—</option><option>Nenhuma</option><option>Estenose UPJ</option><option>ITU</option><option>Sangramento tardio</option><option>Outra</option></select></div>
+            <div class="field"><label>Desfecho final</label><select id="l-desfecho"><option value="">—</option><option>Sucesso — stone free</option><option>Fragmento residual estável</option><option>Reintervenção necessária</option><option>Complicação tardia</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Resultado urina 24 horas</div>
+          <div class="grid3">
+            <div class="field"><label>Cálcio (mg/24h)</label><input type="number" id="l-u24ca"></div>
+            <div class="field"><label>Oxalato (mg/24h)</label><input type="number" id="l-u24ox"></div>
+            <div class="field"><label>Citrato (mg/24h)</label><input type="number" id="l-u24cit"></div>
+            <div class="field"><label>Ácido úrico (mg/24h)</label><input type="number" id="l-u24au"></div>
+            <div class="field"><label>Sódio (mEq/24h)</label><input type="number" id="l-u24na"></div>
+            <div class="field"><label>Volume (mL/24h)</label><input type="number" id="l-u24vol"></div>
+            <div class="field"><label>pH urinário</label><input type="number" id="l-u24ph" step="0.1"></div>
+            <div class="field"><label>Alteração metabólica</label><select id="l-u24alt"><option value="">—</option><option>Hipercalciúria</option><option>Hiperoxalúria</option><option>Hipocitratúria</option><option>Hiperuricosúria</option><option>Combinada</option><option>Nenhuma</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Prevenção metabólica</div>
+          <div class="grid2">
+            <div class="field"><label>Composição do cálculo — AP</label><select id="l-rescomp"><option value="">—</option><option>Oxalato de cálcio</option><option>Ácido úrico</option><option>Estruvita</option><option>Cistina</option><option>Misto</option><option>Pendente</option></select></div>
+            <div class="field"><label>Medicação preventiva</label><select id="l-medprev"><option value="">—</option><option>Citrato de potássio</option><option>Alopurinol</option><option>Tiazídico</option><option>Combinação</option><option>Nenhuma</option></select></div>
+            <div class="field"><label>Encaminhamento nefrologia</label><select id="l-nefenc"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Orientação dietética</label><select id="l-dieta"><option value="">—</option><option>Realizada</option><option>Pendente</option></select></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HBP -->
+    <div id="path-hbp" style="display:none">
+
+      <div class="phase active" id="hbp-pre">
+        <div class="card">
+          <div class="section-badge">Sintomas e escores</div>
+          <div class="grid2">
+            <div class="field"><label>IPSS total (0–35)</label><input type="number" id="h-ipss" min="0" max="35"></div>
+            <div class="field"><label>IPSS qualidade de vida (0–6)</label><input type="number" id="h-ipssqv" min="0" max="6"></div>
+            <div class="field"><label>IIEF-5 (0–25)</label><input type="number" id="h-iief" min="0" max="25"></div>
+            <div class="field"><label>Noctúria (episódios/noite)</label><input type="number" id="h-noct" min="0"></div>
+            <div class="field"><label>Retenção urinária prévia</label><select id="h-retprev"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Sonda vesical de demora atual</label><select id="h-svd"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Tempo de evolução dos sintomas</label><input type="text" id="h-tempsint" placeholder="ex: 2 anos"></div>
+            <div class="field"><label>ASA</label><select id="h-asa"><option value="">—</option><option>I</option><option>II</option><option>III</option><option>IV</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Laboratório</div>
+          <div class="grid2">
+            <div class="field"><label>Data dos exames</label><input type="date" id="h-labdata"></div>
+            <div class="field"><label>PSA total (ng/mL)</label><input type="number" id="h-psa" step="0.01"></div>
+            <div class="field"><label>PSA livre (ng/mL)</label><input type="number" id="h-psaliv" step="0.01"></div>
+            <div class="field"><label>Creatinina (mg/dL)</label><input type="number" id="h-creat" step="0.01"></div>
+            <div class="field"><label>TFG (mL/min)</label><input type="number" id="h-tfg"></div>
+            <div class="field"><label>Urina I (EAS)</label><select id="h-eas"><option value="">—</option><option>Normal</option><option>Hematúria</option><option>Leucocitúria</option><option>Alterado</option></select></div>
+            <div class="field"><label>Urocultura</label><select id="h-urocu"><option value="">—</option><option>Negativa</option><option>Positiva</option><option>Pendente</option></select></div>
+            <div class="field"><label>Outros exames</label><input type="text" id="h-outroslab"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Imagem e urodinâmica</div>
+          <div class="grid2">
+            <div class="field"><label>Volume prostático (mL)</label><input type="number" id="h-volprost"></div>
+            <div class="field"><label>Volume de transição (mL)</label><input type="number" id="h-voltrans"></div>
+            <div class="field"><label>Lobo mediano proeminente</label><select id="h-lobomd"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>IPP — protrusão vesical (mm)</label><input type="number" id="h-ipp" step="0.1"></div>
+            <div class="field"><label>Espessura parede vesical (mm)</label><input type="number" id="h-espves" step="0.1"></div>
+            <div class="field"><label>Divertículo vesical</label><select id="h-divert"><option value="">—</option><option>Ausente</option><option>Presente — pequeno</option><option>Presente — grande</option></select></div>
+            <div class="field"><label>Outros sinais bexiga de esforço</label><select id="h-bexesf"><option value="">—</option><option>Nenhum</option><option>Trabeculação</option><option>Pseudodivertículo</option><option>Células</option><option>Múltiplos</option></select></div>
+            <div class="field"><label>Resíduo pós-miccional (mL)</label><input type="number" id="h-rpm"></div>
+            <div class="field"><label>Qmáx (mL/s)</label><input type="number" id="h-qmax" step="0.1"></div>
+            <div class="field"><label>Urodinâmica</label><select id="h-urodi"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Hidronefrose</label><select id="h-hidro"><option value="">—</option><option>Ausente</option><option>Grau I</option><option>Grau II</option><option>Grau III</option><option>Grau IV</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Tratamento prévio e indicação</div>
+          <div class="grid2">
+            <div class="field"><label>Tratamento clínico prévio</label><select id="h-tratprev"><option value="">—</option><option>Alfa-bloqueador</option><option>Inibidor 5-alfa-redutase</option><option>Combinado</option><option>Anticolinérgico / Beta-3</option><option>Sem tratamento</option></select></div>
+            <div class="field"><label>Duração do tratamento</label><input type="text" id="h-durtrat" placeholder="ex: 12 meses"></div>
+            <div class="field"><label>Indicação cirúrgica</label><select id="h-indcir"><option value="">—</option><option>Refratariedade clínica</option><option>Retenção urinária</option><option>Dano renal</option><option>Litíase associada</option><option>Hematúria recorrente</option></select></div>
+            <div class="field"><label>Técnica proposta</label><select id="h-tecprop"><option value="">—</option><option>RTU-P monopolar</option><option>RTU-P bipolar</option><option>HoLEP</option><option>Laser Greenlight</option><option>Laser Thulium</option><option>Prostatectomia aberta</option><option>Urolift</option><option>Rezum</option></select></div>
+            <div class="field"><label>Antibioticoprofilaxia</label><input type="text" id="h-atb"></div>
+            <div class="field"><label>Suspensão anticoagulante</label><select id="h-anticoa"><option value="">—</option><option>Sim</option><option>Não</option><option>N/A</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase" id="hbp-intra">
+        <div class="card">
+          <div class="section-badge">Dados cirúrgicos</div>
+          <div class="grid2">
+            <div class="field"><label>Data da cirurgia</label><input type="date" id="h-datcir"></div>
+            <div class="field"><label>Cirurgião responsável</label><input type="text" id="h-cirurg"></div>
+            <div class="field"><label>Residente</label><select id="h-resid"><option value="">—</option><option>Nenhum</option><option>R1</option><option>R2</option><option>R3</option></select></div>
+            <div class="field"><label>Técnica realizada</label><select id="h-tecreal"><option value="">—</option><option>RTU-P monopolar</option><option>RTU-P bipolar</option><option>HoLEP</option><option>Laser Greenlight</option><option>Laser Thulium</option><option>Prostatectomia aberta</option></select></div>
+            <div class="field"><label>Anestesia</label><select id="h-anest"><option value="">—</option><option>Geral</option><option>Raquianestesia</option></select></div>
+            <div class="field"><label>Tempo cirúrgico (min)</label><input type="number" id="h-tempo"></div>
+            <div class="field"><label>Fluido de irrigação</label><select id="h-fluido"><option value="">—</option><option>SF 0,9%</option><option>Glicina</option><option>Água destilada</option></select></div>
+            <div class="field"><label>Peso estimado ressecado (g)</label><input type="number" id="h-peso" step="0.1"></div>
+            <div class="field"><label>Anatomia intraoperatória</label><select id="h-anat"><option value="">—</option><option>Lobo mediano predominante</option><option>Lobos laterais predominantes</option><option>Apical</option><option>Misto</option></select></div>
+            <div class="field"><label>Material enviado AP</label><select id="h-ap"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Sangramento estimado (mL)</label><input type="number" id="h-sang"></div>
+            <div class="field"><label>Transfusão</label><select id="h-transf"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Irrigação vesical contínua</label><select id="h-irrig"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Intercorrência</label><select id="h-intercorr"><option value="">—</option><option>Nenhuma</option><option>Síndrome RTU</option><option>Sangramento significativo</option><option>Perfuração vesical</option><option>Lesão esfincteriana</option><option>Conversão de técnica</option></select></div>
+            <div class="field"><label>Clavien-Dindo</label><select id="h-clavien"><option value="">—</option><option>0</option><option>I</option><option>II</option><option>IIIa</option><option>IIIb</option><option>IV</option><option>V</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase" id="hbp-posimm">
+        <div class="card">
+          <div class="section-badge">Parâmetros clínicos</div>
+          <div class="grid2">
+            <div class="field"><label>Dor EVA (0-10)</label><input type="number" id="h-eva" min="0" max="10"></div>
+            <div class="field"><label>Febre</label><select id="h-febre"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Aspecto da urina</label><select id="h-urina"><option value="">—</option><option>Clara</option><option>Hematúria discreta</option><option>Hematúria intensa</option></select></div>
+            <div class="field"><label>Irrigação vesical necessária</label><select id="h-irrigpos"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Obstrução por coágulos</label><select id="h-coagobs"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Sódio pós-op (mEq/L)</label><input type="number" id="h-sodio"></div>
+            <div class="field"><label>Hemoglobina pós-op (g/dL)</label><input type="number" id="h-hb" step="0.1"></div>
+            <div class="field"><label>Creatinina pós-op</label><input type="number" id="h-creatpos" step="0.01"></div>
+            <div class="field"><label>Clavien-Dindo PO</label><select id="h-clavpos"><option value="">—</option><option>0</option><option>I</option><option>II</option><option>IIIa</option><option>IIIb</option><option>IV</option><option>V</option></select></div>
+            <div class="field"><label>Data da alta</label><input type="date" id="h-alta"></div>
+            <div class="field"><label>Tempo internação (dias)</label><input type="number" id="h-intern"></div>
+            <div class="field"><label>Sonda na alta</label><select id="h-sondalt"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Data prevista retirada sonda</label><input type="date" id="h-sondret"></div>
+            <div class="field"><label>Antibiótico de saída</label><input type="text" id="h-atbsaida"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase" id="hbp-pos30">
+        <div class="card">
+          <div class="section-badge">Retorno 30 dias</div>
+          <div class="grid2">
+            <div class="field"><label>Data do retorno</label><input type="date" id="h-ret30data"></div>
+            <div class="field"><label>IPSS 30 dias</label><input type="number" id="h-ipss30" min="0" max="35"></div>
+            <div class="field"><label>IPSS QV 30 dias</label><input type="number" id="h-ipssqv30" min="0" max="6"></div>
+            <div class="field"><label>Qmáx 30 dias (mL/s)</label><input type="number" id="h-qmax30" step="0.1"></div>
+            <div class="field"><label>Resíduo pós-miccional (mL)</label><input type="number" id="h-rpm30"></div>
+            <div class="field"><label>Incontinência urinária</label><select id="h-incont"><option value="">—</option><option>Ausente</option><option>Esforço</option><option>Urgência</option><option>Total</option></select></div>
+            <div class="field"><label>ITU pós-operatória</label><select id="h-itu30"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Retenção urinária pós-op</label><select id="h-retpos"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-badge">Anatomopatológico</div>
+          <div class="grid2">
+            <div class="field"><label>Resultado AP</label><select id="h-resap"><option value="">—</option><option>HPB</option><option>Prostatite</option><option>Neoplasia incidental</option><option>Pendente</option></select></div>
+            <div class="field"><label>Peso da próstata no AP (g)</label><input type="number" id="h-pesoapr" step="0.1"></div>
+            <div class="field"><label>Gleason (se CaP)</label><input type="text" id="h-gleason" placeholder="ex: 3+4=7"></div>
+            <div class="field"><label>Conduta pós-AP</label><select id="h-condap"><option value="">—</option><option>Seguimento urologia</option><option>Encaminhamento oncologia</option><option>N/A</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase" id="hbp-pos90">
+        <div class="card">
+          <div class="section-badge">Retorno 90 dias</div>
+          <div class="grid2">
+            <div class="field"><label>Data do retorno</label><input type="date" id="h-ret90data"></div>
+            <div class="field"><label>IPSS 90 dias</label><input type="number" id="h-ipss90" min="0" max="35"></div>
+            <div class="field"><label>IPSS QV 90 dias</label><input type="number" id="h-ipssqv90" min="0" max="6"></div>
+            <div class="field"><label>Qmáx 90 dias (mL/s)</label><input type="number" id="h-qmax90" step="0.1"></div>
+            <div class="field"><label>Resíduo pós-miccional (mL)</label><input type="number" id="h-rpm90"></div>
+            <div class="field"><label>IIEF-5 90 dias</label><input type="number" id="h-iief90" min="0" max="25"></div>
+            <div class="field"><label>Ejaculação retrógrada</label><select id="h-ejacretro"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Estenose uretral / colo vesical</label><select id="h-esten"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>PSA 90 dias</label><input type="number" id="h-psa90" step="0.01"></div>
+            <div class="field"><label>Creatinina 90 dias</label><input type="number" id="h-creat90" step="0.01"></div>
+            <div class="field"><label>Reinício alfa-bloqueador</label><select id="h-reinalfa"><option value="">—</option><option>Sim</option><option>Não</option></select></div>
+            <div class="field"><label>Desfecho final</label><select id="h-desfecho"><option value="">—</option><option>Sucesso clínico — IPSS &lt;8</option><option>Melhora parcial</option><option>Sintomas persistentes</option><option>Reintervenção necessária</option><option>Complicação tardia</option></select></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-primary" onclick="savePatient()"><i class="ti ti-check"></i> Salvar paciente</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDw_WcW7oM8mlE2g1MHRdMhqPee0ndBJII",
+  authDomain: "endourologia-hspe.firebaseapp.com",
+  projectId: "endourologia-hspe",
+  storageBucket: "endourologia-hspe.firebasestorage.app",
+  messagingSenderId: "1016111299207",
+  appId: "1:1016111299207:web:5fc1887ecb9cce2cd0d622"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const col = collection(db, "pacientes");
+
+let patients = [];
+let editId = null;
+
+function showToast(msg, ok=true){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = ok ? '#166534' : '#991b1b';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+window.goList = function(){
+  document.getElementById('scr-list').classList.add('active');
+  document.getElementById('scr-form').classList.remove('active');
+  editId = null;
+}
+
+window.goNew = function(){
+  editId = null;
+  document.getElementById('form-title').textContent = 'Novo paciente';
+  document.getElementById('btn-delete').style.display = 'none';
+  document.querySelectorAll('#scr-form input,#scr-form select,#scr-form textarea').forEach(el=>el.value='');
+  togglePath();
+  switchPhase('pre');
+  document.getElementById('scr-list').classList.remove('active');
+  document.getElementById('scr-form').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+window.goEdit = function(id){
+  editId = id;
+  const p = patients.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('form-title').textContent = p['f-nome'] || 'Paciente';
+  document.getElementById('btn-delete').style.display = '';
+  document.querySelectorAll('#scr-form input,#scr-form select,#scr-form textarea').forEach(el=>{
+    if(p[el.id] !== undefined) el.value = p[el.id];
+    else el.value = '';
+  });
+  togglePath();
+  switchPhase('pre');
+  document.getElementById('scr-list').classList.remove('active');
+  document.getElementById('scr-form').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+window.togglePath = function(){
+  const v = document.getElementById('f-path').value;
+  document.getElementById('path-litiase').style.display = v==='litiase'?'block':'none';
+  document.getElementById('path-hbp').style.display = v==='hbp'?'block':'none';
+}
+
+window.switchPhase = function(ph){
+  const phases=['pre','intra','posimm','pos30','pos90'];
+  document.querySelectorAll('#phase-tabs .tab').forEach((t,i)=>t.classList.toggle('active',phases[i]===ph));
+  const path = document.getElementById('f-path').value;
+  if(!path) return;
+  document.querySelectorAll(`#path-${path} .phase`).forEach(el=>el.classList.remove('active'));
+  const el = document.getElementById(`${path}-${ph}`);
+  if(el) el.classList.add('active');
+}
+
+function collectForm(){
+  const d = { updated: new Date().toISOString() };
+  document.querySelectorAll('#scr-form input,#scr-form select,#scr-form textarea').forEach(el=>{
+    if(el.id) d[el.id] = el.value;
+  });
+  return d;
+}
+
+window.savePatient = async function(){
+  const d = collectForm();
+  if(!d['f-nome']){ showToast('Informe o nome do paciente', false); return; }
+  if(!d['f-path']){ showToast('Selecione a patologia', false); return; }
+  try {
+    if(editId){
+      await updateDoc(doc(db,'pacientes',editId), d);
+      showToast('Paciente atualizado');
+    } else {
+      d.created = new Date().toISOString();
+      await addDoc(col, d);
+      showToast('Paciente salvo');
+    }
+    goList();
+  } catch(e){ showToast('Erro ao salvar: '+e.message, false); }
+}
+
+window.deletePatient = async function(){
+  if(!confirm('Excluir este paciente permanentemente?')) return;
+  try {
+    await deleteDoc(doc(db,'pacientes',editId));
+    showToast('Paciente excluído');
+    goList();
+  } catch(e){ showToast('Erro ao excluir', false); }
+}
+
+window.renderList = function(){
+  const q = (document.getElementById('search').value||'').toLowerCase();
+  const fp = document.getElementById('filter-path').value;
+  let list = patients.filter(p=>{
+    const nm = (p['f-nome']||'').toLowerCase();
+    const pr = (p['f-pront']||'').toLowerCase();
+    return (!q || nm.includes(q) || pr.includes(q)) && (!fp || p['f-path']===fp);
+  }).sort((a,b)=>(b.updated||'').localeCompare(a.updated||''));
+  const el = document.getElementById('patient-list');
+  if(!list.length){
+    el.innerHTML = `<div class="empty"><i class="ti ti-users"></i>${patients.length?'Nenhum resultado':'Nenhum paciente cadastrado ainda'}</div>`;
+    return;
+  }
+  el.innerHTML = list.map(p=>{
+    const badge = p['f-path']==='litiase'
+      ? '<span class="badge badge-blue">Litíase</span>'
+      : '<span class="badge badge-green">HBP</span>';
+    const dt = p.updated ? new Date(p.updated).toLocaleDateString('pt-BR') : '';
+    return `<div class="patient-row" onclick="goEdit('${p.id}')">
+      <div class="patient-info">
+        <div class="patient-name">${p['f-nome']||'—'}</div>
+        <div class="patient-sub">Pront. ${p['f-pront']||'—'} &nbsp;·&nbsp; ${dt}</div>
+      </div>
+      ${badge}
+      <i class="ti ti-chevron-right" style="color:#ccc"></i>
+    </div>`;
+  }).join('');
+}
+
+function updateStats(){
+  const total = patients.length;
+  const lit = patients.filter(p=>p['f-path']==='litiase').length;
+  const hbp = patients.filter(p=>p['f-path']==='hbp').length;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-lit').textContent = lit;
+  document.getElementById('s-hbp').textContent = hbp;
+}
+
+window.exportExcel = function(){
+  if(!patients.length){ showToast('Nenhum dado para exportar', false); return; }
+  const keys = [...new Set(patients.flatMap(p=>Object.keys(p)))].filter(k=>k!=='id');
+  const rows = [['id',...keys], ...patients.map(p=>['id' in p ? p.id : '',...keys.map(k=>p[k]||'')])];
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Pacientes');
+  XLSX.writeFile(wb, `endourologia_hspe_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`);
+  showToast('Exportado com sucesso');
+}
+
+const q2 = query(col, orderBy('updated','desc'));
+onSnapshot(q2, snap => {
+  patients = snap.docs.map(d=>({id:d.id,...d.data()}));
+  updateStats();
+  renderList();
+}, err => {
+  document.getElementById('patient-list').innerHTML = '<div class="empty"><i class="ti ti-alert-circle"></i>Erro ao conectar ao banco de dados.<br>Verifique as regras do Firestore.</div>';
+});
+</script>
+</body>
+</html>
